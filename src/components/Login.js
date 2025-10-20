@@ -22,7 +22,14 @@ const Login = ({ onLogin }) => {
 
     try {
       const response = await apiClient.post('/api/auth/login', credentials);
+      console.log('Login response:', response.data);
+      
       const { token, user } = response.data;
+      
+      if (!user) {
+        setError('Invalid response from server. Please try again.');
+        return;
+      }
       
       if (user.role !== 'admin') {
         setError('Access denied. Admin privileges required.');
@@ -32,7 +39,7 @@ const Login = ({ onLogin }) => {
       onLogin(user, token);
     } catch (error) {
       console.error('Login error:', error);
-      setError(error.response?.data?.error || error.message || 'Login failed');
+      setError(error.response?.data?.message || error.response?.data?.error || error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
