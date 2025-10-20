@@ -13,7 +13,7 @@ import {
   People,
   Queue
 } from '@mui/icons-material';
-import axios from 'axios';
+import { apiClient } from '../utils/api';
 
 const StatCard = ({ title, value, icon, color }) => (
   <Card>
@@ -54,7 +54,7 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/admin/dashboard', {
+      const response = await apiClient.get('/api/admin/dashboard', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(response.data);

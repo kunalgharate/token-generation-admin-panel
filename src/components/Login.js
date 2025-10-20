@@ -8,7 +8,7 @@ import {
   Box,
   Alert
 } from '@mui/material';
-import axios from 'axios';
+import { apiClient } from '../utils/api';
 
 const Login = ({ onLogin }) => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -21,7 +21,7 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await apiClient.post('/api/auth/login', credentials);
       const { token, user } = response.data;
       
       if (user.role !== 'admin') {
@@ -31,7 +31,8 @@ const Login = ({ onLogin }) => {
       
       onLogin(user, token);
     } catch (error) {
-      setError(error.response?.data?.error || 'Login failed');
+      console.error('Login error:', error);
+      setError(error.response?.data?.error || error.message || 'Login failed');
     } finally {
       setLoading(false);
     }

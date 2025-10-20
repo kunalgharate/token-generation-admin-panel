@@ -16,7 +16,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { format } from 'date-fns';
-import axios from 'axios';
+import { apiClient } from '../utils/api';
 
 const Reports = () => {
   const [reports, setReports] = useState([]);
@@ -42,7 +42,7 @@ const Reports = () => {
         if (value) params.append(key, value);
       });
 
-      const response = await axios.get(`/api/admin/reports?${params}`, {
+      const response = await apiClient.get(`/api/admin/reports?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setReports(response.data);
