@@ -1,11 +1,14 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: '',
+  baseURL: process.env.NODE_ENV === 'production' 
+    ? 'https://temple-token-management-system.onrender.com' 
+    : '',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
+  withCredentials: false
 });
 
 // Add request interceptor for debugging
