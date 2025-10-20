@@ -22,12 +22,34 @@ const Login = ({ onLogin }) => {
 
     try {
       const response = await apiClient.post('/api/auth/login', credentials);
-      console.log('Login response:', response.data);
+      console.log('Full login response:', response.data);
       
-      const { token, user } = response.data;
+      // Handle different response structures
+      let token, user;
       
-      if (!user) {
-        setError('Invalid response from server. Please try again.');
+      if (response.data.token && response.data.user) {
+        // Structure: { token, user }
+        token = response.data.token;
+        user = response.data.user;
+      } else if (response.data.accessToken) {
+        // Structure: { accessToken, ...userFields }
+        token = response.data.accessToken;
+        user = response.data;
+      } else if (response.data.role) {
+        // Structure: { role, username, token, ... }
+        token = response.data.token;
+        user = response.data;
+      } else {
+        // Fallback
+        token = response.data.token;
+        user = response.data;
+      }
+      
+      console.log('Extracted user:', user);
+      console.log('User role:', user?.role);
+      
+      if (!user || !user.role) {
+        setError('Invalid response from server. User data missing.');
         return;
       }
       
