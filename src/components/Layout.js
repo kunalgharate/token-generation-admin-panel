@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -20,12 +20,14 @@ import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   Assessment as ReportsIcon,
+  People as PeopleIcon,
+  ConfirmationNumber as TokenIcon,
   Logout as LogoutIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
 
-const Layout = ({ children, user, onLogout }) => {
+const Layout = ({ user, onLogout }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,6 +41,8 @@ const Layout = ({ children, user, onLogout }) => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Reports', icon: <ReportsIcon />, path: '/reports' },
+    { text: 'Passengers', icon: <PeopleIcon />, path: '/passengers' },
+    { text: 'Tokens', icon: <TokenIcon />, path: '/tokens' },
   ];
 
   const drawer = (
@@ -134,7 +138,7 @@ const Layout = ({ children, user, onLogout }) => {
         }}
       >
         <Toolbar />
-        {children}
+        <Outlet />
       </Box>
     </Box>
   );

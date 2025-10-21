@@ -5,6 +5,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Reports from './components/Reports';
+import Passengers from './components/Passengers';
+import Tokens from './components/Tokens';
 import Layout from './components/Layout';
 
 const theme = createTheme({
@@ -55,25 +57,18 @@ function App() {
         <Routes>
           <Route 
             path="/login" 
-            element={
-              user ? <Navigate to="/" /> : <Login onLogin={handleLogin} />
-            } 
+            element={user ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} 
           />
-          <Route 
-            path="/*" 
-            element={
-              user ? (
-                <Layout user={user} onLogout={handleLogout}>
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/reports" element={<Reports />} />
-                  </Routes>
-                </Layout>
-              ) : (
-                <Navigate to="/login" />
-              )
-            } 
-          />
+          {user ? (
+            <Route path="/" element={<Layout user={user} onLogout={handleLogout} />}>
+              <Route index element={<Dashboard />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="passengers" element={<Passengers />} />
+              <Route path="tokens" element={<Tokens />} />
+            </Route>
+          ) : (
+            <Route path="*" element={<Navigate to="/login" />} />
+          )}
         </Routes>
       </Router>
     </ThemeProvider>
