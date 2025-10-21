@@ -70,15 +70,15 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       // Fetch dashboard stats
-      const statsResponse = await apiClient.get('/admin/dashboard');
+      const statsResponse = await apiClient.get('/api/admin/dashboard');
       setStats(statsResponse.data);
 
       // Fetch recent tokens
-      const tokensResponse = await apiClient.get('/admin/recent-tokens');
+      const tokensResponse = await apiClient.get('/api/admin/recent-tokens');
       setRecentTokens(tokensResponse.data.tokens || []);
 
       // Fetch hourly data for chart
-      const chartResponse = await apiClient.get('/admin/hourly-stats');
+      const chartResponse = await apiClient.get('/api/admin/hourly-stats');
       setChartData(chartResponse.data.hourly_data || []);
 
     } catch (error) {

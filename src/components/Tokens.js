@@ -48,7 +48,7 @@ const Tokens = () => {
 
   const fetchTokens = async () => {
     try {
-      const response = await apiClient.get('/admin/tokens');
+      const response = await apiClient.get('/api/admin/tokens');
       const tokenData = response.data.tokens || response.data || [];
       
       setTokens(tokenData);
@@ -76,7 +76,7 @@ const Tokens = () => {
 
   const handleStatusUpdate = async (tokenId, newStatus) => {
     try {
-      await apiClient.put(`/admin/tokens/${tokenId}`, { status: newStatus });
+      await apiClient.put(`/api/admin/tokens/${tokenId}`, { status: newStatus });
       
       // Update local state
       const updatedTokens = tokens.map(t => 

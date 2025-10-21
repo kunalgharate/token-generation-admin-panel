@@ -37,7 +37,7 @@ const Reports = () => {
         if (value) params.append(key, value);
       });
 
-      const response = await apiClient.get(`/admin/reports?${params}`);
+      const response = await apiClient.get(`/api/admin/reports?${params}`);
       setReports(response.data.reports || response.data || []);
     } catch (error) {
       console.error('Error fetching reports:', error);

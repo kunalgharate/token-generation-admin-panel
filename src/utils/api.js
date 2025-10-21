@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://temple-token-management-system.onrender.com/api';
+const API_BASE_URL = 'https://temple-token-management-system.onrender.com';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

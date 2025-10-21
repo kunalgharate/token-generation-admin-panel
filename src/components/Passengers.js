@@ -46,7 +46,7 @@ const Passengers = () => {
 
   const fetchPassengers = async () => {
     try {
-      const response = await apiClient.get('/admin/passengers');
+      const response = await apiClient.get('/api/admin/passengers');
       const passengerData = response.data.passengers || response.data || [];
       
       setPassengers(passengerData);
