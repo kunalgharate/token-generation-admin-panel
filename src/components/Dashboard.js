@@ -17,7 +17,7 @@ import {
   AccessTime
 } from '@mui/icons-material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import axios from 'axios';
+import { apiClient } from '../utils/api';
 
 const StatCard = ({ title, value, icon, color, trend }) => (
   <Card>
@@ -58,20 +58,7 @@ const StatCard = ({ title, value, icon, color, trend }) => (
 );
 
 const Dashboard = () => {
-  const [stats, setStats] = useState({
-    today: {
-      today_tokens: 25,
-      today_passengers: 18,
-      today_queue_entries: 32,
-      today_completed: 15
-    },
-    total: {
-      total_vehicles: 156,
-      total_tokens: 1248,
-      total_passengers: 892,
-      total_queue_entries: 2156
-    }
-  });
+  const [stats, setStats] = useState(null);
   const [recentTokens, setRecentTokens] = useState([]);
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,43 +69,17 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
       // Fetch dashboard stats
-      try {
-        const response = await axios.get('/api/admin/dashboard', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setStats(response.data);
-      } catch (error) {
-        console.log('Using mock dashboard data');
-      }
+      const statsResponse = await apiClient.get('/admin/dashboard');
+      setStats(statsResponse.data);
 
       // Fetch recent tokens
-      try {
-        const tokensResponse = await axios.get('/api/admin/recent-tokens', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setRecentTokens(tokensResponse.data.tokens || []);
-      } catch (error) {
-        // Mock recent tokens data
-        setRecentTokens([
-          { id: 1, token_number: 'T025', passenger_name: 'Rajesh Kumar', status: 'pending', created_at: '2024-10-20T12:30:00Z' },
-          { id: 2, token_number: 'T024', passenger_name: 'Priya Sharma', status: 'in_progress', created_at: '2024-10-20T12:15:00Z' },
-          { id: 3, token_number: 'T023', passenger_name: 'Amit Patel', status: 'completed', created_at: '2024-10-20T12:00:00Z' },
-          { id: 4, token_number: 'T022', passenger_name: 'Sunita Devi', status: 'completed', created_at: '2024-10-20T11:45:00Z' },
-          { id: 5, token_number: 'T021', passenger_name: 'Vikram Singh', status: 'completed', created_at: '2024-10-20T11:30:00Z' }
-        ]);
-      }
+      const tokensResponse = await apiClient.get('/admin/recent-tokens');
+      setRecentTokens(tokensResponse.data.tokens || []);
 
-      // Mock chart data for hourly token generation
-      setChartData([
-        { hour: '9 AM', tokens: 3 },
-        { hour: '10 AM', tokens: 7 },
-        { hour: '11 AM', tokens: 5 },
-        { hour: '12 PM', tokens: 8 },
-        { hour: '1 PM', tokens: 2 }
-      ]);
+      // Fetch hourly data for chart
+      const chartResponse = await apiClient.get('/admin/hourly-stats');
+      setChartData(chartResponse.data.hourly_data || []);
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -161,7 +122,7 @@ const Dashboard = () => {
             value={stats?.today?.today_tokens || 0}
             icon={<ConfirmationNumber />}
             color="#ff6b35"
-            trend={12}
+            trend={stats?.today?.tokens_trend}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -170,7 +131,7 @@ const Dashboard = () => {
             value={stats?.today?.today_passengers || 0}
             icon={<People />}
             color="#f7931e"
-            trend={8}
+            trend={stats?.today?.passengers_trend}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -179,7 +140,7 @@ const Dashboard = () => {
             value={stats?.today?.today_queue_entries || 0}
             icon={<Queue />}
             color="#4caf50"
-            trend={15}
+            trend={stats?.today?.queue_trend}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -188,7 +149,7 @@ const Dashboard = () => {
             value={stats?.today?.today_completed || 0}
             icon={<AccessTime />}
             color="#2196f3"
-            trend={5}
+            trend={stats?.today?.completed_trend}
           />
         </Grid>
       </Grid>

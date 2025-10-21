@@ -14,15 +14,17 @@ import {
   InputAdornment,
   Grid,
   Card,
-  CardContent
+  CardContent,
+  CircularProgress
 } from '@mui/material';
 import { Search as SearchIcon, People as PeopleIcon } from '@mui/icons-material';
-import axios from 'axios';
+import { apiClient } from '../utils/api';
 
 const Passengers = () => {
   const [passengers, setPassengers] = useState([]);
   const [filteredPassengers, setFilteredPassengers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -35,38 +37,30 @@ const Passengers = () => {
 
   useEffect(() => {
     const filtered = passengers.filter(passenger =>
-      passenger.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      passenger.phone.includes(searchTerm) ||
-      passenger.token_number.toString().includes(searchTerm)
+      passenger.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      passenger.phone?.includes(searchTerm) ||
+      passenger.token_number?.toString().includes(searchTerm)
     );
     setFilteredPassengers(filtered);
   }, [passengers, searchTerm]);
 
   const fetchPassengers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/admin/passengers', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await apiClient.get('/admin/passengers');
+      const passengerData = response.data.passengers || response.data || [];
       
-      setPassengers(response.data.passengers || []);
+      setPassengers(passengerData);
       
       // Calculate stats
-      const total = response.data.passengers?.length || 0;
-      const active = response.data.passengers?.filter(p => p.status === 'waiting' || p.status === 'in_progress').length || 0;
-      const completed = response.data.passengers?.filter(p => p.status === 'completed').length || 0;
+      const total = passengerData.length;
+      const active = passengerData.filter(p => p.status === 'waiting' || p.status === 'in_progress').length;
+      const completed = passengerData.filter(p => p.status === 'completed').length;
       
       setStats({ total, active, completed });
     } catch (error) {
       console.error('Error fetching passengers:', error);
-      // Mock data for development
-      const mockData = [
-        { id: 1, name: 'Rajesh Kumar', phone: '9876543210', token_number: 'T001', status: 'waiting', created_at: '2024-10-20T10:30:00Z' },
-        { id: 2, name: 'Priya Sharma', phone: '9876543211', token_number: 'T002', status: 'in_progress', created_at: '2024-10-20T11:00:00Z' },
-        { id: 3, name: 'Amit Patel', phone: '9876543212', token_number: 'T003', status: 'completed', created_at: '2024-10-20T09:15:00Z' }
-      ];
-      setPassengers(mockData);
-      setStats({ total: 3, active: 2, completed: 1 });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,6 +72,14 @@ const Passengers = () => {
       default: return 'default';
     }
   };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -165,7 +167,7 @@ const Passengers = () => {
                 <TableCell>{passenger.phone}</TableCell>
                 <TableCell>
                   <Chip
-                    label={passenger.status.replace('_', ' ').toUpperCase()}
+                    label={passenger.status?.replace('_', ' ').toUpperCase()}
                     color={getStatusColor(passenger.status)}
                     size="small"
                   />

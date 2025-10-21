@@ -21,18 +21,20 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  CircularProgress
 } from '@mui/material';
 import {
   ConfirmationNumber as TokenIcon,
   Edit as EditIcon
 } from '@mui/icons-material';
-import axios from 'axios';
+import { apiClient } from '../utils/api';
 
 const Tokens = () => {
   const [tokens, setTokens] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedToken, setSelectedToken] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     today: 0,
     pending: 0,
@@ -41,31 +43,22 @@ const Tokens = () => {
   });
 
   useEffect(() => {
-    const fetchTokens = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('/api/admin/tokens', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        setTokens(response.data.tokens || []);
-        calculateStats(response.data.tokens || []);
-      } catch (error) {
-        console.error('Error fetching tokens:', error);
-        // Mock data for development
-        const mockTokens = [
-          { id: 1, token_number: 'T001', passenger_name: 'Rajesh Kumar', vehicle_type: 'Car', status: 'pending', created_at: '2024-10-20T10:30:00Z' },
-          { id: 2, token_number: 'T002', passenger_name: 'Priya Sharma', vehicle_type: 'Bus', status: 'in_progress', created_at: '2024-10-20T11:00:00Z' },
-          { id: 3, token_number: 'T003', passenger_name: 'Amit Patel', vehicle_type: 'Car', status: 'completed', created_at: '2024-10-20T09:15:00Z' },
-          { id: 4, token_number: 'T004', passenger_name: 'Sunita Devi', vehicle_type: 'Auto', status: 'cancelled', created_at: '2024-10-20T12:00:00Z' }
-        ];
-        setTokens(mockTokens);
-        calculateStats(mockTokens);
-      }
-    };
-
     fetchTokens();
   }, []);
+
+  const fetchTokens = async () => {
+    try {
+      const response = await apiClient.get('/admin/tokens');
+      const tokenData = response.data.tokens || response.data || [];
+      
+      setTokens(tokenData);
+      calculateStats(tokenData);
+    } catch (error) {
+      console.error('Error fetching tokens:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const calculateStats = (tokenData) => {
     const today = new Date().toDateString();
@@ -83,28 +76,16 @@ const Tokens = () => {
 
   const handleStatusUpdate = async (tokenId, newStatus) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`/api/admin/tokens/${tokenId}`, 
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await apiClient.put(`/admin/tokens/${tokenId}`, { status: newStatus });
       
       // Update local state
-      setTokens(tokens.map(t => 
+      const updatedTokens = tokens.map(t => 
         t.id === tokenId ? { ...t, status: newStatus } : t
-      ));
-      calculateStats(tokens.map(t => 
-        t.id === tokenId ? { ...t, status: newStatus } : t
-      ));
+      );
+      setTokens(updatedTokens);
+      calculateStats(updatedTokens);
     } catch (error) {
       console.error('Error updating token status:', error);
-      // For demo purposes, update locally
-      setTokens(tokens.map(t => 
-        t.id === tokenId ? { ...t, status: newStatus } : t
-      ));
-      calculateStats(tokens.map(t => 
-        t.id === tokenId ? { ...t, status: newStatus } : t
-      ));
     }
   };
 
@@ -149,6 +130,14 @@ const Tokens = () => {
       </DialogActions>
     </Dialog>
   );
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -218,8 +207,8 @@ const Tokens = () => {
           <TableHead>
             <TableRow>
               <TableCell>Token Number</TableCell>
-              <TableCell>Passenger Name</TableCell>
-              <TableCell>Vehicle Type</TableCell>
+              <TableCell>Vehicle Number</TableCell>
+              <TableCell>Passenger Count</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Created At</TableCell>
               <TableCell>Actions</TableCell>
@@ -229,11 +218,11 @@ const Tokens = () => {
             {tokens.map((token) => (
               <TableRow key={token.id}>
                 <TableCell>{token.token_number}</TableCell>
-                <TableCell>{token.passenger_name}</TableCell>
-                <TableCell>{token.vehicle_type}</TableCell>
+                <TableCell>{token.vehicle_number}</TableCell>
+                <TableCell>{token.passenger_count}</TableCell>
                 <TableCell>
                   <Chip
-                    label={token.status.replace('_', ' ').toUpperCase()}
+                    label={token.status?.replace('_', ' ').toUpperCase()}
                     color={getStatusColor(token.status)}
                     size="small"
                   />

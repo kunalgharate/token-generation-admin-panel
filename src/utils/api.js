@@ -1,36 +1,21 @@
 import axios from 'axios';
 
-export const apiClient = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' 
-    ? 'https://temple-token-management-system.onrender.com' 
-    : '',
-  timeout: 10000,
+const API_BASE_URL = 'https://temple-token-management-system.onrender.com/api';
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: false
 });
 
-// Add request interceptor for debugging
-apiClient.interceptors.request.use(
-  (config) => {
-    console.log('Making request to:', config.url);
-    return config;
-  },
-  (error) => {
-    console.error('Request error:', error);
-    return Promise.reject(error);
+// Add auth token to requests
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
-// Add response interceptor for debugging
-apiClient.interceptors.response.use(
-  (response) => {
-    console.log('Response received:', response.status);
-    return response;
-  },
-  (error) => {
-    console.error('Response error:', error.response?.status, error.message);
-    return Promise.reject(error);
-  }
-);
+export { apiClient };

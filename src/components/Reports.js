@@ -16,7 +16,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { format } from 'date-fns';
-import axios from 'axios';
+import { apiClient } from '../utils/api';
 
 const Reports = () => {
   const [reports, setReports] = useState([]);
@@ -31,34 +31,16 @@ const Reports = () => {
   const fetchReports = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const params = new URLSearchParams();
       
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params.append(key, value);
       });
 
-      const response = await axios.get(`/api/admin/reports?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setReports(response.data);
+      const response = await apiClient.get(`/admin/reports?${params}`);
+      setReports(response.data.reports || response.data || []);
     } catch (error) {
       console.error('Error fetching reports:', error);
-      // Mock data
-      setReports([
-        {
-          id: 1,
-          token_number: 'T001',
-          vehicle_number: 'MH12AB1234',
-          passengers_filled: 4,
-          passenger_count: 4,
-          status: 'completed',
-          queue_number: 'Q001',
-          queue_status: 'completed',
-          created_by: 'Admin',
-          created_at: '2024-10-20T10:30:00Z'
-        }
-      ]);
     } finally {
       setLoading(false);
     }
@@ -77,6 +59,8 @@ const Reports = () => {
       case 'completed': return 'success';
       case 'active': return 'primary';
       case 'waiting': return 'warning';
+      case 'pending': return 'warning';
+      case 'cancelled': return 'error';
       default: return 'default';
     }
   };
@@ -139,17 +123,19 @@ const Reports = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Token</TableCell>
-                <TableCell>Vehicle</TableCell>
+                <TableCell>Token Number</TableCell>
+                <TableCell>Vehicle Number</TableCell>
+                <TableCell>Passenger Count</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Created At</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {reports.map((report) => (
-                <TableRow key={report.id}>
+                <TableRow key={report.id || report.token_number}>
                   <TableCell>{report.token_number}</TableCell>
                   <TableCell>{report.vehicle_number}</TableCell>
+                  <TableCell>{report.passenger_count}</TableCell>
                   <TableCell>
                     <Chip
                       label={report.status}
